@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\ViewModels\MoviesViewModel;
+use App\ViewModels\MovieViewModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -23,14 +25,18 @@ class MoviesController extends Controller
             get('https://api.themoviedb.org/3/movie/now_playing?api_key='.$key)
             ->json()['results'];
 
-        $genresArray = Http::
+        $genres = Http::
             get('https://api.themoviedb.org/3/genre/movie/list?api_key='.$key)
             ->json()['genres'];
-        $genres = collect($genresArray)->mapWithKeys(function ($genre){
-            return [$genre['id']=>$genre['name']];
-        });
 
-        return view('index', compact('popularMovies', 'genres', 'nowPlayingMovies'));
+        // return view('index', compact('popularMovies', 'genres', 'nowPlayingMovies'));
+        $viewModel = new MoviesViewModel(
+            $popularMovies,
+            $nowPlayingMovies,
+            $genres
+        );
+
+        return view('index', $viewModel);
     }
 
     /**
@@ -67,7 +73,11 @@ class MoviesController extends Controller
             get('https://api.themoviedb.org/3/movie/'.$id.'?api_key='.$key.'&append_to_response=credits,videos,images')
             ->json();
 
-        return view('show', compact('movie'));
+        $viewModel = new MovieViewModel(
+            $movie
+        );
+
+        return view('show', $viewModel);
     }
 
     /**
