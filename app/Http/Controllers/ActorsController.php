@@ -2,41 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\ViewModels\MoviesViewModel;
-use App\ViewModels\MovieViewModel;
+use App\ViewModels\ActorsViewModel;
+use App\ViewModels\ActorViewModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class MoviesController extends Controller
+class ActorsController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($page = 1)
     {
+        abort_if($page>500, 204);
+
         $key = env('TMDB_KEY');
-        $popularMovies = Http::
-            get('https://api.themoviedb.org/3/movie/popular?api_key='.$key)
-            ->json()['results'];
-        
-        $nowPlayingMovies = Http::
-            get('https://api.themoviedb.org/3/movie/now_playing?api_key='.$key)
+        $popularActors = Http::
+            get('https://api.themoviedb.org/3/person/popular?api_key='.$key.'&page='.$page)
             ->json()['results'];
 
-        $genres = Http::
-            get('https://api.themoviedb.org/3/genre/movie/list?api_key='.$key)
-            ->json()['genres'];
+        $viewModel = new ActorsViewModel($popularActors, $page);
 
-        // return view('index', compact('popularMovies', 'genres', 'nowPlayingMovies'));
-        $viewModel = new MoviesViewModel(
-            $popularMovies,
-            $nowPlayingMovies,
-            $genres
-        );
-
-        return view('movies.index', $viewModel);
+        return view('actors.index', $viewModel);
     }
 
     /**
@@ -69,15 +58,25 @@ class MoviesController extends Controller
     public function show($id)
     {
         $key = env('TMDB_KEY');
-        $movie = Http::
-            get('https://api.themoviedb.org/3/movie/'.$id.'?api_key='.$key.'&append_to_response=credits,videos,images')
+        $actor = Http::
+            get('https://api.themoviedb.org/3/person/'.$id.'?api_key='.$key)
             ->json();
 
-        $viewModel = new MovieViewModel(
-            $movie
+        $social = Http::
+            get('https://api.themoviedb.org/3/person/'.$id.'/external_ids'.'?api_key='.$key)
+            ->json();
+        
+        $credits = Http::
+            get('https://api.themoviedb.org/3/person/'.$id.'/combined_credits'.'?api_key='.$key)
+            ->json();
+
+        $viewModel = new ActorViewModel(
+            $actor,
+            $social,
+            $credits
         );
 
-        return view('movies.show', $viewModel);
+        return view('actors.show', $viewModel);
     }
 
     /**

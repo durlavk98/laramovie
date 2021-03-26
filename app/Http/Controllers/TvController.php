@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\ViewModels\MoviesViewModel;
-use App\ViewModels\MovieViewModel;
+use App\ViewModels\TvShowViewModel;
+use App\ViewModels\TvViewModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class MoviesController extends Controller
+class TvController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,26 +17,26 @@ class MoviesController extends Controller
     public function index()
     {
         $key = env('TMDB_KEY');
-        $popularMovies = Http::
-            get('https://api.themoviedb.org/3/movie/popular?api_key='.$key)
+        $popularTv = Http::
+            get('https://api.themoviedb.org/3/tv/popular?api_key='.$key)
             ->json()['results'];
         
-        $nowPlayingMovies = Http::
-            get('https://api.themoviedb.org/3/movie/now_playing?api_key='.$key)
+        $topRatedTv = Http::
+            get('https://api.themoviedb.org/3/tv/top_rated?api_key='.$key)
             ->json()['results'];
 
         $genres = Http::
-            get('https://api.themoviedb.org/3/genre/movie/list?api_key='.$key)
+            get('https://api.themoviedb.org/3/genre/tv/list?api_key='.$key)
             ->json()['genres'];
 
         // return view('index', compact('popularMovies', 'genres', 'nowPlayingMovies'));
-        $viewModel = new MoviesViewModel(
-            $popularMovies,
-            $nowPlayingMovies,
+        $viewModel = new TvViewModel(
+            $popularTv,
+            $topRatedTv,
             $genres
         );
 
-        return view('movies.index', $viewModel);
+        return view('tv.index', $viewModel);
     }
 
     /**
@@ -69,15 +69,15 @@ class MoviesController extends Controller
     public function show($id)
     {
         $key = env('TMDB_KEY');
-        $movie = Http::
-            get('https://api.themoviedb.org/3/movie/'.$id.'?api_key='.$key.'&append_to_response=credits,videos,images')
+        $tvshow = Http::
+            get('https://api.themoviedb.org/3/tv/'.$id.'?api_key='.$key.'&append_to_response=credits,videos,images')
             ->json();
 
-        $viewModel = new MovieViewModel(
-            $movie
+        $viewModel = new TvShowViewModel(
+            $tvshow
         );
 
-        return view('movies.show', $viewModel);
+        return view('tv.show', $viewModel);
     }
 
     /**
